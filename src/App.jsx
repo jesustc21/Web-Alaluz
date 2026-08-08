@@ -79,6 +79,7 @@ export default function AlaluzReservas() {
   const [guests, setGuests] = useState(8);
   const [notice, setNotice] = useState("");
   const [modal, setModal] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   const base = new Date(today.getFullYear(), today.getMonth() + offset, 1);
   const monthsShown = [base, new Date(base.getFullYear(), base.getMonth() + 1, 1)];
@@ -138,6 +139,22 @@ export default function AlaluzReservas() {
   return (
     <div className="alaluz">
       <style>{CSS}</style>
+
+      {showBanner && (
+        <div className="build-banner">
+          <span>
+            🚧 Esta web está en construcción. Precios, disponibilidad y pagos
+            son de prueba — todavía no aceptamos reservas reales.
+          </span>
+          <button
+            className="build-banner-close"
+            onClick={() => setShowBanner(false)}
+            aria-label="Cerrar aviso"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <header className="nav">
         <div className="brand">
@@ -476,6 +493,18 @@ const CSS = `
 .alaluz h1,.alaluz h2,.alaluz h3{font-family:var(--display);font-weight:400;letter-spacing:-.01em;margin:0;}
 .alaluz a{color:inherit;text-decoration:none;}
 .alaluz section{padding:76px 28px;max-width:1140px;margin:0 auto;}
+
+/* BUILD BANNER */
+.build-banner{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  gap:14px;background:var(--oro);color:#2b2107;padding:10px 44px 10px 16px;text-align:center;
+  font-size:13px;font-weight:600;line-height:1.4;}
+.build-banner-close{position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:#2b2107;font-size:20px;line-height:1;cursor:pointer;
+  padding:4px 8px;}
+.build-banner-close:hover{opacity:.7;}
+@media(max-width:560px){
+  .build-banner{font-size:12px;padding:9px 40px 9px 12px;}
+}
 
 /* NAV */
 .nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
