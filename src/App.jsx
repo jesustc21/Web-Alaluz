@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // ---------------------------------------------------------------------------
 // Casa rural Alaluz (Osuna) — prototipo de web de reservas directas
@@ -20,9 +20,7 @@ const PHOTOS = [
     `https://a0.muscache.com/im/pictures/miso/Hosting-870948616590893988/original/${id}.jpeg?im_w=1200`
 );
 
-const NIGHTLY = 520; // precio orientativo — editable
-const CLEANING = 90;
-const MIN_NIGHTS = 2;
+const AVAILABILITY_URL = "https://automation.soluciona.es/webhook/alaluz-public-availability-v1";
 
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -41,20 +39,28 @@ const addDays = (d, n) => {
 };
 const stripTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-// Fechas bloqueadas de ejemplo (simulan reservas ya cerradas en Airbnb)
-function buildBlocked() {
-  const today = stripTime(new Date());
+function datesInRange(start, end) {
   const set = new Set();
-  const ranges = [
-    [5, 8],
-    [17, 21],
-    [33, 36],
-    [48, 52],
-  ];
-  ranges.forEach(([a, b]) => {
-    for (let i = a; i <= b; i++) set.add(iso(addDays(today, i)));
-  });
+  if (!start || !end) return set;
+  for (let d = new Date(`${start}T00:00:00`); iso(d) < end; d = addDays(d, 1)) set.add(iso(d));
   return set;
+}
+
+function pickRule(date, rules) {
+  const candidates = rules.filter((r) => r.activa && date >= r.desde && date <= r.hasta);
+  if (!candidates.length) return null;
+  const maxPriority = Math.max(...candidates.map((r) => Number(r.prioridad) || 0));
+  const top = candidates.filter((r) => (Number(r.prioridad) || 0) === maxPriority);
+  return top.length === 1 ? top[0] : null;
+}
+
+function priceForDate(date, pricing) {
+  const special = pickRule(date, pricing.especiales || []);
+  const rule = special || pickRule(date, pricing.tarifas || []);
+  if (!rule) return null;
+  const dow = new Date(`${date}T00:00:00`).getDay();
+  const field = dow === 5 ? "precio_viernes" : dow === 6 ? "precio_sabado" : dow === 0 ? "precio_domingo" : "precio_lun_jue";
+  return { price: Number(rule[field]), minNights: Number(rule.min_noches) || 1, name: rule.nombre };
 }
 
 function monthMatrix(year, month) {
@@ -72,7 +78,21 @@ function monthMatrix(year, month) {
 
 export default function AlaluzReservas() {
   const today = useMemo(() => stripTime(new Date()), []);
-  const blocked = useMemo(() => buildBlocked(), []);
+  const [availability, setAvailability] = useState({ blocked: new Set(), tarifas: [], especiales: [], loaded: false, error: "" });
+  useEffect(() => {
+    let alive = true;
+    fetch(AVAILABILITY_URL)
+      .then((r) => { if (!r.ok) throw new Error("No se pudo consultar la disponibilidad"); return r.json(); })
+      .then((data) => {
+        if (!alive) return;
+        const blocked = new Set();
+        (data.bloqueos || []).forEach((r) => datesInRange(r.fecha_entrada, r.fecha_salida).forEach((d) => blocked.add(d)));
+        setAvailability({ blocked, tarifas: data.tarifas || [], especiales: data.especiales || [], loaded: true, error: "" });
+      })
+      .catch(() => alive && setAvailability((a) => ({ ...a, loaded: true, error: "No hemos podido actualizar la disponibilidad. Inténtalo de nuevo en unos minutos." })));
+    return () => { alive = false; };
+  }, []);
+  const blocked = availability.blocked;
   const [offset, setOffset] = useState(0); // meses desde el actual
   const [checkIn, setCheckIn] = useState(null);
   const [checkOut, setCheckOut] = useState(null);
@@ -105,8 +125,15 @@ export default function AlaluzReservas() {
       return;
     }
     const nights = Math.round((d - checkIn) / 86400000);
-    if (nights < MIN_NIGHTS) {
-      setNotice(`Estancia mínima de ${MIN_NIGHTS} noches.`);
+    const selectedRules = [];
+    for (let x = new Date(checkIn); x < d; x = addDays(x, 1)) {
+      const rule = priceForDate(iso(x), availability);
+      if (!rule) { setNotice("No hay tarifa configurada para todas las noches seleccionadas."); return; }
+      selectedRules.push(rule);
+    }
+    const minNights = Math.max(1, ...selectedRules.map((r) => r.minNights));
+    if (nights < minNights) {
+      setNotice(`Estancia mínima de ${minNights} noches para esas fechas.`);
       return;
     }
     if (rangeHasBlocked(checkIn, d)) {
@@ -118,8 +145,21 @@ export default function AlaluzReservas() {
   };
 
   const nights = checkIn && checkOut ? Math.round((checkOut - checkIn) / 86400000) : 0;
-  const subtotal = nights * NIGHTLY;
-  const total = nights ? subtotal + CLEANING : 0;
+  const nightlyBreakdown = useMemo(() => {
+    if (!checkIn || !checkOut) return [];
+    const rows = [];
+    for (let d = new Date(checkIn); d < checkOut; d = addDays(d, 1)) {
+      const rule = priceForDate(iso(d), availability);
+      if (rule) rows.push({ date: iso(d), ...rule });
+    }
+    return rows;
+  }, [checkIn, checkOut, availability.tarifas, availability.especiales]);
+  const subtotal = nightlyBreakdown.reduce((sum, x) => sum + x.price, 0);
+  const total = nights && nightlyBreakdown.length === nights ? subtotal : 0;
+  const fromPrice = useMemo(() => {
+    const rule = priceForDate(iso(today), availability);
+    return rule?.price || null;
+  }, [availability.tarifas, availability.especiales, today]);
 
   const fmtDate = (d) =>
     d ? `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}` : "—";
@@ -202,7 +242,7 @@ export default function AlaluzReservas() {
           <span className="num">Reserva</span>
           <h2>Elige tus fechas</h2>
           <p className="muted">
-            Precio orientativo. La disponibilidad se sincroniza con Airbnb.
+            Disponibilidad sincronizada con Airbnb y precios calculados según las tarifas activas.
           </p>
         </div>
 
@@ -258,6 +298,8 @@ export default function AlaluzReservas() {
                 </div>
               ))}
             </div>
+            {!availability.loaded && <div className="notice">Actualizando disponibilidad…</div>}
+            {availability.error && <div className="notice">{availability.error}</div>}
             <div className="legend">
               <span><i className="lg open" /> Libre</span>
               <span><i className="lg blocked" /> Ocupado (Airbnb)</span>
@@ -267,7 +309,7 @@ export default function AlaluzReservas() {
 
           <aside className="summary">
             <div className="price-row">
-              <span className="price">{eur(NIGHTLY)}</span>
+              <span className="price">{fromPrice ? `Desde ${eur(fromPrice)}` : "Consulta fechas"}</span>
               <span className="per">/ noche</span>
             </div>
             <div className="dates">
@@ -296,12 +338,8 @@ export default function AlaluzReservas() {
             {nights > 0 && (
               <div className="breakdown">
                 <div>
-                  <span>{eur(NIGHTLY)} × {nights} noches</span>
+                  <span>{nights} noches · tarifa según fecha</span>
                   <span>{eur(subtotal)}</span>
-                </div>
-                <div>
-                  <span>Limpieza</span>
-                  <span>{eur(CLEANING)}</span>
                 </div>
                 <div className="total">
                   <span>Total</span>
@@ -425,7 +463,7 @@ export default function AlaluzReservas() {
         <div className="foot-col small">
           <p>Registro turístico de Andalucía: <b>CR/SE/00382</b></p>
           <p>Disponibilidad sincronizada con Airbnb.</p>
-          <p className="proto">Prototipo · precios y pago simulados</p>
+          <p className="proto">Disponibilidad y precios reales · pago todavía en pruebas</p>
         </div>
       </footer>
 
@@ -440,9 +478,8 @@ export default function AlaluzReservas() {
               <div className="dlg-total"><span>Total</span><b>{eur(total)}</b></div>
             </div>
             <p className="dlg-note">
-              En la web real, aquí se abriría el pago seguro (Stripe o Redsys) y
-              quedaría registrada la reserva, bloqueando estas fechas también en
-              Airbnb.
+              El siguiente paso del proyecto es conectar aquí el pago seguro y, tras confirmarlo,
+              registrar la reserva y bloquear automáticamente estas fechas también en Airbnb.
             </p>
             <button className="btn-solid full" onClick={() => setModal(false)}>
               Entendido
