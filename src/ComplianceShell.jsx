@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AlaluzReservas from "./App.jsx";
 import DepositPricingBridge from "./DepositPricingBridge.jsx";
+import BookingCheckoutBridge from "./BookingCheckoutBridge.jsx";
 import MapSection from "./MapSection.jsx";
 import { CookieConsent, LegalFooter, LegalModal, LEGAL_CSS } from "./LegalCompliance.jsx";
 import { LEGAL_VERSION } from "./legal.js";
@@ -48,6 +49,7 @@ export default function ComplianceShell() {
       <style>{LEGAL_CSS}</style>
       <AlaluzReservas />
       <DepositPricingBridge />
+      <BookingCheckoutBridge />
       <MapPortal />
       <LegalFooter onOpenLegal={setLegalPage} />
       <CookieConsent onOpenLegal={setLegalPage} />
