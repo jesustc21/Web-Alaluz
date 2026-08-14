@@ -1,4 +1,1 @@
-{
-  "framework": "vite",
-  "buildCommand": "cp src/ComplianceShell.production.jsx src/ComplianceShell.jsx && cp src/RequestFlowBridge.production.jsx src/RequestFlowBridge.jsx && npm run build"
-}
+{"framework":"vite","buildCommand":"npm run build"}
