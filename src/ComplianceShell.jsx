@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AlaluzReservas from "./App.jsx";
 import DepositPricingBridge from "./DepositPricingBridge.jsx";
-import RequestFlowBridge from "./RequestFlowBridge.jsx";
 import MapSection from "./MapSection.jsx";
 import { CookieConsent, LegalFooter, LegalModal, LEGAL_CSS } from "./LegalCompliance.jsx";
 import { LEGAL_VERSION } from "./legal.js";
@@ -27,7 +26,7 @@ export default function ComplianceShell() {
       const button = event.target.closest?.("button.btn-solid.full");
       if (!button || button.disabled || accepted || document.documentElement.dataset.alaluzLegalAccepted === "1") return;
       const text = (button.textContent || "").trim();
-      if (!["Reservar", "Solicitar reserva"].includes(text)) return;
+      if (text !== "Reservar") return;
       event.preventDefault();
       event.stopPropagation();
       setPendingButton(button);
@@ -51,7 +50,6 @@ export default function ComplianceShell() {
       <style>{LEGAL_CSS}</style>
       <AlaluzReservas />
       <DepositPricingBridge />
-      <RequestFlowBridge />
       <MapPortal />
       <LegalFooter onOpenLegal={setLegalPage} />
       <CookieConsent onOpenLegal={setLegalPage} />
