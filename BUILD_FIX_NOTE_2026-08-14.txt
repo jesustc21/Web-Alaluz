@@ -1,0 +1,1 @@
+El build de Vercel ya no sobrescribe src/ComplianceShell.jsx ni src/RequestFlowBridge.jsx con copias .production. El código fuente de main es ahora el que se compila y despliega.
