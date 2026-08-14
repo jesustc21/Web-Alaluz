@@ -82,7 +82,7 @@ export default function RequestFlowBridge() {
     event.preventDefault();
     setError("");
     if (adults < 1 || adults > 12) return setError("La vivienda admite un máximo de 12 adultos.");
-    if (totalGuests > 22) return setError("La vivienda admite un máximo de 22 huéspedes en total.");
+    if (totalGuests > 20) return setError("La casa rural admite un máximo de 20 huéspedes en total.");
     if (!form.nombre.trim() || !form.email.trim() || !form.telefono.trim()) return setError("Completa nombre, email y teléfono.");
     if (form.motivo.trim().length < 3 || form.grupo.trim().length < 10) return setError("Indica el motivo y cuéntanos brevemente quiénes vais a venir.");
     setSending(true);
@@ -124,11 +124,11 @@ export default function RequestFlowBridge() {
       <div className="request-guest-field">
         <label>Menores</label>
         <select value={minors} onChange={(e) => setMinors(Number(e.target.value))}>
-          {Array.from({ length: Math.max(0, 22 - adults) + 1 }, (_, i) => i).map((n) => <option key={n} value={n}>{n}</option>)}
+          {Array.from({ length: Math.max(0, 20 - adults) + 1 }, (_, i) => i).map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
-      <p>{totalGuests} huéspedes en total · máximo 12 adultos y 22 huéspedes.</p>
-      <p>Por la distribución y dimensiones de las camas, hay un máximo de 12 plazas adecuadas para adultos. Las restantes son literas compactas, especialmente adecuadas para menores.</p>
+      <p>{totalGuests} huéspedes en total · máximo 12 adultos y 20 huéspedes.</p>
+      <p>Por la distribución y dimensiones de las camas, limitamos la ocupación a 12 adultos. Parte de las plazas restantes se encuentran en literas compactas, especialmente adecuadas para menores.</p>
     </div>,
     guestTarget
   ) : null;
