@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AlaluzReservas from "./App.jsx";
+import DepositPricingBridge from "./DepositPricingBridge.jsx";
 import MapSection from "./MapSection.jsx";
 import { CookieConsent, LegalFooter, LegalModal, LEGAL_CSS } from "./LegalCompliance.jsx";
 import { LEGAL_VERSION } from "./legal.js";
@@ -23,9 +24,8 @@ export default function ComplianceShell() {
   useEffect(() => {
     const intercept = (event) => {
       const button = event.target.closest?.("button.btn-solid.full");
-      if (!button || button.disabled || accepted || document.documentElement.dataset.alaluzLegalAccepted === "1") return;
-      const text = (button.textContent || "").trim();
-      if (text !== "Reservar") return;
+      if (!button || button.disabled || accepted) return;
+      if ((button.textContent || "").trim() !== "Reservar") return;
       event.preventDefault();
       event.stopPropagation();
       setPendingButton(button);
@@ -36,7 +36,6 @@ export default function ComplianceShell() {
   }, [accepted]);
 
   const confirmBooking = () => {
-    document.documentElement.dataset.alaluzLegalAccepted = "1";
     setAccepted(true);
     setConsentOpen(false);
     const button = pendingButton;
@@ -48,6 +47,7 @@ export default function ComplianceShell() {
     <>
       <style>{LEGAL_CSS}</style>
       <AlaluzReservas />
+      <DepositPricingBridge />
       <MapPortal />
       <LegalFooter onOpenLegal={setLegalPage} />
       <CookieConsent onOpenLegal={setLegalPage} />
@@ -56,10 +56,10 @@ export default function ComplianceShell() {
         <div className="legal-overlay" role="dialog" aria-modal="true" aria-label="Aceptación de condiciones">
           <div className="legal-modal" style={{ maxWidth: 560 }}>
             <div className="legal-head">
-              <div><span className="eyebrow">Antes de continuar</span><h2>Condiciones de la solicitud</h2></div>
+              <div><span className="eyebrow">Antes de continuar</span><h2>Condiciones de la reserva</h2></div>
               <button className="legal-close" onClick={() => setConsentOpen(false)} aria-label="Cerrar">×</button>
             </div>
-            <p style={{ lineHeight: 1.65 }}>Para enviar la solicitud debes aceptar las Condiciones de reserva y confirmar que has leído la Política de privacidad. Enviar la solicitud no supone todavía ningún cobro ni confirma la reserva.</p>
+            <p style={{ lineHeight: 1.65 }}>Para continuar con la reserva debes aceptar las Condiciones de reserva y confirmar que has leído la Política de privacidad. La política de cancelación aplicable es la Semiestricta indicada en las condiciones.</p>
             <div className="booking-consent">
               <input id="legal-accept" type="checkbox" />
               <label htmlFor="legal-accept">He leído y acepto las <button type="button" onClick={() => setLegalPage("condiciones")}>Condiciones de reserva</button> y he leído la <button type="button" onClick={() => setLegalPage("privacidad")}>Política de privacidad</button>. Versión {LEGAL_VERSION}.</label>

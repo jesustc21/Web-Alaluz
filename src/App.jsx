@@ -115,24 +115,32 @@ export default function AlaluzReservas() {
     if (!day) return;
     const d = stripTime(day);
     if (d < today || blocked.has(iso(d))) return;
-    // primer clic, o empezar una selección nueva
     if (!checkIn || (checkIn && checkOut)) {
       setCheckIn(d);
       setCheckOut(null);
       return;
     }
-    // clic igual o anterior a la entrada → mover la entrada
     if (d <= checkIn) {
       setCheckIn(d);
       return;
     }
-    // único bloqueo duro: no cruzar un día ocupado
-    if (rangeHasBlocked(checkIn, d)) {
-      setNotice("Esas fechas incluyen días no disponibles. Prueba otro rango.");
+    const nights = Math.round((d - checkIn) / 86400000);
+    const selectedRules = [];
+    for (let x = new Date(checkIn); x < d; x = addDays(x, 1)) {
+      const rule = priceForDate(iso(x), availability);
+      if (!rule) { setNotice("No hay tarifa configurada para todas las noches seleccionadas."); return; }
+      selectedRules.push(rule);
+    }
+    const minNights = Math.max(1, ...selectedRules.map((r) => r.minNights));
+    if (nights < minNights) {
+      setNotice(`Estancia mínima de ${minNights} noches para esas fechas.`);
       return;
     }
-    // fijar la salida siempre que el rango sea válido; el precio y la estancia
-    // mínima se comprueban aparte y solo condicionan el botón "Reservar"
+    if (rangeHasBlocked(checkIn, d)) {
+      setNotice("Esas fechas incluyen días no disponibles. Prueba otro rango.");
+      setCheckOut(null);
+      return;
+    }
     setCheckOut(d);
   };
 
@@ -147,13 +155,7 @@ export default function AlaluzReservas() {
     return rows;
   }, [checkIn, checkOut, availability.tarifas, availability.especiales]);
   const subtotal = nightlyBreakdown.reduce((sum, x) => sum + x.price, 0);
-  const priceComplete = nights > 0 && nightlyBreakdown.length === nights;
-  const total = priceComplete ? subtotal : 0;
-  const minNightsRequired = nightlyBreakdown.length
-    ? Math.max(1, ...nightlyBreakdown.map((r) => r.minNights))
-    : 1;
-  const meetsMin = nights >= minNightsRequired;
-  const canBook = Boolean(checkIn && checkOut && priceComplete && meetsMin);
+  const total = nights && nightlyBreakdown.length === nights ? subtotal : 0;
   const fromPrice = useMemo(() => {
     const rule = priceForDate(iso(today), availability);
     return rule?.price || null;
@@ -332,14 +334,8 @@ export default function AlaluzReservas() {
             </div>
 
             {notice && <div className="notice">{notice}</div>}
-            {checkIn && checkOut && !meetsMin && (
-              <div className="notice">Estancia mínima de {minNightsRequired} noches para estas fechas.</div>
-            )}
-            {checkIn && checkOut && meetsMin && !priceComplete && (
-              <div className="notice">Aún no hay tarifa publicada para todas las noches. Escríbenos y te confirmamos el precio.</div>
-            )}
 
-            {nights > 0 && priceComplete && (
+            {nights > 0 && (
               <div className="breakdown">
                 <div>
                   <span>{nights} noches · tarifa según fecha</span>
@@ -354,14 +350,10 @@ export default function AlaluzReservas() {
 
             <button
               className="btn-solid full"
-              disabled={!canBook}
+              disabled={!(checkIn && checkOut)}
               onClick={() => setModal(true)}
             >
-              {canBook
-                ? "Reservar"
-                : checkIn && checkOut
-                ? "Consulta estas fechas"
-                : "Selecciona tus fechas"}
+              {checkIn && checkOut ? "Reservar" : "Selecciona tus fechas"}
             </button>
             <p className="reassure">Reserva directa. Sin comisiones de plataforma.</p>
           </aside>
