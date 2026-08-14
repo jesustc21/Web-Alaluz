@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { LEGAL_VERSION } from "./legal.js";
 
 const REQUEST_URL = "https://automation.soluciona.es/webhook/alaluz-solicitud-v1";
 const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -76,6 +77,7 @@ export default function RequestFlowBridge() {
           motivo_estancia: form.motivo.trim(),
           descripcion_grupo: form.grupo.trim(),
           acepta_normas: true,
+          legal_version: LEGAL_VERSION,
         }),
       });
       const data = await response.json().catch(() => ({}));
