@@ -45,7 +45,7 @@ export default function RequestFlowBridge() {
         if (guestTarget !== guests) setGuestTarget(guests);
       }
       document.querySelectorAll(".summary button.btn-solid.full").forEach((button) => {
-        if (!button.disabled && ["Reservar", "Solicitar reserva"].includes((button.textContent || "").trim())) {
+        if (!button.disabled && (button.textContent || "").trim() === "Reservar") {
           button.textContent = "Solicitar reserva";
         }
       });
