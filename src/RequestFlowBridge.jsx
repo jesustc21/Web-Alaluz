@@ -35,32 +35,15 @@ export default function RequestFlowBridge() {
   const totalGuests = adults + minors;
 
   useEffect(() => {
-    const decorate = () => {
-      const guests = document.querySelector(".summary .guests");
-      if (guests) {
-        const oldSelect = guests.querySelector("select");
-        const oldLabel = guests.querySelector("label");
-        if (oldSelect) oldSelect.style.display = "none";
-        if (oldLabel) oldLabel.style.display = "none";
-        if (guestTarget !== guests) setGuestTarget(guests);
-      }
-      document.querySelectorAll(".summary button.btn-solid.full").forEach((button) => {
-        if (!button.disabled && (button.textContent || "").trim() === "Reservar") {
-          button.textContent = "Solicitar reserva";
-        }
-      });
-    };
-    decorate();
-    const observer = new MutationObserver(decorate);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
-  }, [guestTarget]);
+    const guests = document.querySelector(".summary .guests");
+    if (guests) setGuestTarget(guests);
+  }, []);
 
   useEffect(() => {
     const intercept = (event) => {
       const button = event.target.closest?.(".summary button.btn-solid.full");
       if (!button || button.disabled) return;
-      if ((button.textContent || "").trim() !== "Solicitar reserva") return;
+      if (!["Reservar", "Solicitar reserva"].includes((button.textContent || "").trim())) return;
       if (document.documentElement.dataset.alaluzLegalAccepted !== "1") return;
       event.preventDefault();
       event.stopPropagation();
@@ -136,7 +119,10 @@ export default function RequestFlowBridge() {
   return (
     <>
       <style>{`
-        .request-guests{margin-top:0}.request-guests{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .summary .guests>label,.summary .guests>select{display:none!important}
+        .summary>button.btn-solid.full:not(:disabled){font-size:0}
+        .summary>button.btn-solid.full:not(:disabled)::after{content:"Solicitar reserva";font-size:15px}
+        .request-guests{margin-top:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .request-guest-field{border:1px solid var(--linea);border-radius:11px;padding:10px 12px}
         .request-guest-field label{display:block!important;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--piedra)}
         .request-guest-field select{display:block!important;width:100%;border:none;background:transparent;font:inherit;color:var(--olivo);outline:none}
