@@ -93,6 +93,8 @@ export default function RequestFlowBridge() {
       <style>{`
         .summary>button.btn-solid.full:not(:disabled){font-size:0}
         .summary>button.btn-solid.full:not(:disabled)::after{content:"Solicitar reserva";font-size:15px}
+        .summary .guests{display:none}
+        .summary .dates::after{content:"Adultos y menores se indican en el siguiente paso · máximo 12 adultos y 20 huéspedes";grid-column:1/-1;margin-top:2px;padding:9px 11px;border:1px solid var(--linea);border-radius:10px;color:#6d6d63;font-size:12px;line-height:1.4;background:#fff}
         .request-overlay{position:fixed;inset:0;background:rgba(20,24,17,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
         .request-modal{background:#fff;border-radius:18px;width:min(640px,100%);padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.25)}
         .request-modal h2{font-family:var(--display);font-weight:400;color:var(--olivo);margin:0 0 8px}.request-modal .lead{color:#5d6054;margin:0 0 18px}
