@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import AlaluzReservas from "./App.jsx";
 import DepositPricingBridge from "./DepositPricingBridge.jsx";
 import RequestFlowBridge from "./RequestFlowBridge.jsx";
+import PaymentReturnNotice from "./PaymentReturnNotice.jsx";
 import MapSection from "./MapSection.jsx";
 import { CookieConsent, LegalFooter, LegalModal, LEGAL_CSS } from "./LegalCompliance.jsx";
 import { LEGAL_VERSION } from "./legal.js";
@@ -52,6 +53,7 @@ export default function ComplianceShell() {
       <AlaluzReservas />
       <DepositPricingBridge />
       <RequestFlowBridge />
+      <PaymentReturnNotice />
       <MapPortal />
       <LegalFooter onOpenLegal={setLegalPage} />
       <CookieConsent onOpenLegal={setLegalPage} />
