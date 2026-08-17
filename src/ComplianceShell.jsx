@@ -5,6 +5,7 @@ import DepositPricingBridge from "./DepositPricingBridge.jsx";
 import RequestFlowBridge from "./RequestFlowBridge.jsx";
 import PaymentReturnNotice from "./PaymentReturnNotice.jsx";
 import MapSection from "./MapSection.jsx";
+import ConstructionNotice from "./ConstructionNotice.jsx";
 import { CookieConsent, LegalFooter, LegalModal, LEGAL_CSS } from "./LegalCompliance.jsx";
 import { LEGAL_VERSION } from "./legal.js";
 
@@ -50,6 +51,7 @@ export default function ComplianceShell() {
   return (
     <>
       <style>{LEGAL_CSS}</style>
+      <ConstructionNotice />
       <AlaluzReservas />
       <DepositPricingBridge />
       <RequestFlowBridge />
