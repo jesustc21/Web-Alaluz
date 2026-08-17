@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const AVAILABILITY_URL = "https://automation.soluciona.es/webhook/alaluz-public-availability-v1";
+const AVAILABILITY_URL = "https://automation.casaruralalaluz.com/webhook/alaluz-public-availability-v1";
 
 function parseEuro(value) {
   const cleaned = String(value || "")

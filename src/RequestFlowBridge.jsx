@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { LEGAL_VERSION } from "./legal.js";
 
-const REQUEST_URL = "https://automation.soluciona.es/webhook/alaluz-solicitud-v1";
+const REQUEST_URL = "https://automation.casaruralalaluz.com/webhook/alaluz-solicitud-v1";
 const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 function selectedDate(className) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const STATUS_URL = "https://automation.soluciona.es/webhook/alaluz-estado-reserva-v1";
+const STATUS_URL = "https://automation.casaruralalaluz.com/webhook/alaluz-estado-reserva-v1";
 const TERMINAL_ERROR = new Set(["cancelada", "expirada", "rechazada"]);
 
 export default function PaymentReturnNotice() {
