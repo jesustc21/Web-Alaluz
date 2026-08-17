@@ -1,0 +1,49 @@
+name: Alaluz CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Prelaunch guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R --line-number --fixed-strings "automation.soluciona.es" src; then
+            echo "ERROR: referencia al n8n antiguo detectada"
+            exit 1
+          fi
+          grep -q 'noindex, nofollow' index.html || {
+            echo "ERROR: noindex retirado antes de completar la apertura"
+            exit 1
+          }
+          grep -q 'Web en construcción' src/ConstructionNotice.jsx || {
+            echo "ERROR: aviso de construcción retirado antes de completar la apertura"
+            exit 1
+          }
