@@ -1,11 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 
 // ---------------------------------------------------------------------------
-// Casa rural Alaluz (Osuna) — prototipo de web de reservas directas
-// Diseño: campiña de la Sierra Sur — verde olivo + oro de aceite sobre cal.
-// Nota: disponibilidad, precio y pago son SIMULADOS en este prototipo.
-//   - La disponibilidad real vendrá del iCal de Airbnb vía n8n.
-//   - El pago real irá por Stripe o Redsys.
+// Casa Rural Alaluz (Osuna) — web de reservas directas en producción.
+// Disponibilidad y precios se consultan en el n8n propio de Alaluz.
+// Las solicitudes se revisan antes de habilitar el pago seguro con Revolut.
 // ---------------------------------------------------------------------------
 
 const PHOTOS = [
@@ -20,7 +18,7 @@ const PHOTOS = [
     `https://a0.muscache.com/im/pictures/miso/Hosting-870948616590893988/original/${id}.jpeg?im_w=1200`
 );
 
-const AVAILABILITY_URL = "https://automation.soluciona.es/webhook/alaluz-public-availability-v1";
+const AVAILABILITY_URL = "https://automation.casaruralalaluz.com/webhook/alaluz-public-availability-v1";
 
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -99,7 +97,7 @@ export default function AlaluzReservas() {
   const [guests, setGuests] = useState(8);
   const [notice, setNotice] = useState("");
   const [modal, setModal] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   const base = new Date(today.getFullYear(), today.getMonth() + offset, 1);
   const monthsShown = [base, new Date(base.getFullYear(), base.getMonth() + 1, 1)];
@@ -183,8 +181,7 @@ export default function AlaluzReservas() {
       {showBanner && (
         <div className="build-banner">
           <span>
-            🚧 Esta web está en construcción. Precios, disponibilidad y pagos
-            son de prueba — todavía no aceptamos reservas reales.
+            Entorno de preproducción.
           </span>
           <button
             className="build-banner-close"
@@ -226,7 +223,7 @@ export default function AlaluzReservas() {
             sin intermediarios ni comisiones.
           </p>
           <div className="facts">
-            <Fact n="16+" l="viajeros" />
+            <Fact n="20" l="huéspedes máx." />
             <Fact n="7" l="dormitorios" />
             <Fact n="18" l="camas" />
             <Fact n="7,5" l="baños" />
@@ -302,7 +299,7 @@ export default function AlaluzReservas() {
             {availability.error && <div className="notice">{availability.error}</div>}
             <div className="legend">
               <span><i className="lg open" /> Libre</span>
-              <span><i className="lg blocked" /> Ocupado (Airbnb)</span>
+              <span><i className="lg blocked" /> No disponible</span>
               <span><i className="lg sel" /> Tu estancia</span>
             </div>
           </div>
@@ -463,7 +460,7 @@ export default function AlaluzReservas() {
         <div className="foot-col small">
           <p>Registro turístico de Andalucía: <b>CR/SE/00382</b></p>
           <p>Disponibilidad sincronizada con Airbnb.</p>
-          <p className="proto">Disponibilidad y precios reales · pago todavía en pruebas</p>
+          <p className="proto">Reservas directas con pago seguro tras preaprobación.</p>
         </div>
       </footer>
 
@@ -478,8 +475,7 @@ export default function AlaluzReservas() {
               <div className="dlg-total"><span>Total</span><b>{eur(total)}</b></div>
             </div>
             <p className="dlg-note">
-              El siguiente paso del proyecto es conectar aquí el pago seguro y, tras confirmarlo,
-              registrar la reserva y bloquear automáticamente estas fechas también en Airbnb.
+              Revisamos cada solicitud antes de confirmarla. Si se preaprueba, recibirás un enlace seguro de Revolut para completar el pago dentro del plazo indicado.
             </p>
             <button className="btn-solid full" onClick={() => setModal(false)}>
               Entendido
