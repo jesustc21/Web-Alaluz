@@ -25,6 +25,15 @@ export default function ComplianceShell() {
   const [pendingButton, setPendingButton] = useState(null);
 
   useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === "#condiciones-reserva") setLegalPage("condiciones");
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
+
+  useEffect(() => {
     const intercept = (event) => {
       const button = event.target.closest?.("button.btn-solid.full");
       if (!button || button.disabled || accepted || document.documentElement.dataset.alaluzLegalAccepted === "1") return;
@@ -48,6 +57,13 @@ export default function ComplianceShell() {
     setTimeout(() => button?.click(), 0);
   };
 
+  const closeLegal = () => {
+    setLegalPage(null);
+    if (window.location.hash === "#condiciones-reserva") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  };
+
   return (
     <>
       <style>{LEGAL_CSS}</style>
@@ -59,7 +75,7 @@ export default function ComplianceShell() {
       <MapPortal />
       <LegalFooter onOpenLegal={setLegalPage} />
       <CookieConsent onOpenLegal={setLegalPage} />
-      <LegalModal page={legalPage} onClose={() => setLegalPage(null)} />
+      <LegalModal page={legalPage} onClose={closeLegal} />
       {consentOpen && (
         <div className="legal-overlay" role="dialog" aria-modal="true" aria-label="Aceptación de condiciones">
           <div className="legal-modal" style={{ maxWidth: 560 }}>
