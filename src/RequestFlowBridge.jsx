@@ -69,7 +69,7 @@ export default function RequestFlowBridge() {
         body: JSON.stringify({
           fecha_entrada: dates.entrada,
           fecha_salida: dates.salida,
-          adultos,
+          adultos: adults,
           menores: minors,
           nombre: form.nombre.trim(),
           email: form.email.trim(),
