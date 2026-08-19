@@ -1,0 +1,11 @@
+.content:has(.alert.error) > section {
+  display: none;
+}
+
+.content:has(.alert.error) .alert.error::after {
+  content: 'No se muestran datos hasta recuperar la conexión con el backend.';
+  display: block;
+  margin-top: .35rem;
+  font-size: .86rem;
+  opacity: .8;
+}
