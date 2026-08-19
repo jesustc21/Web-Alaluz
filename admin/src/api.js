@@ -11,6 +11,16 @@ const paths = {
   finanzas: 'alaluz-admin-finance-v1',
 }
 
+function describeError(data, status) {
+  const raw = data?.error ?? data?.message
+  if (typeof raw === 'string' && raw.trim()) return raw
+  if (raw && typeof raw === 'object') {
+    if (typeof raw.message === 'string' && raw.message.trim()) return raw.message
+    if (typeof raw.code === 'string' && raw.code.trim()) return `${raw.code} (HTTP ${status})`
+  }
+  return `Backend no disponible (HTTP ${status})`
+}
+
 async function request(path, body = {}) {
   const response = await fetch(`${API_BASE}/${path}`, {
     method: 'POST',
@@ -22,9 +32,14 @@ async function request(path, body = {}) {
     body: JSON.stringify(body),
   })
 
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Backend no disponible (HTTP ${response.status})`)
+  }
+
   const data = await response.json().catch(() => ({}))
   if (!response.ok || data.ok === false) {
-    const error = new Error(data.error || `Error HTTP ${response.status}`)
+    const error = new Error(describeError(data, response.status))
     error.status = response.status
     error.data = data
     throw error
